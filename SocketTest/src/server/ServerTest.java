@@ -1,5 +1,9 @@
 package server;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.security.PrivateKey;
@@ -9,6 +13,9 @@ import java.sql.*;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 import cryptoUtils.*;
 
@@ -60,6 +67,8 @@ class ClientHandler extends Thread {
     private cryptoAES aesUtil;
     private String rsaPublicKey;
     private String rsaPrivateKey;
+    private JFrame frame;
+    private JLabel label;
 
     public ClientHandler(Socket server, Map<String, String> sessionKeyMap, DatabaseConnector dbConnector) {
         this.server = server;
@@ -74,6 +83,16 @@ class ClientHandler extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        setupGUI();
+    }
+
+    private void setupGUI() {
+        frame = new JFrame("ScreenCast - Server");
+        label = new JLabel();
+        frame.getContentPane().add(label);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(600, 450);
+        frame.setVisible(true);
     }
 
     public void run() {
@@ -87,8 +106,37 @@ class ClientHandler extends Thread {
                 processLoginMsgFromClient(); //处理登录请求（if
             else if (preMsg.equals("2"))
                 processRegisterMsgFromClient();
+            receiveAndDisplayScreen();
             server.close();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void receiveAndDisplayScreen() {
+        try {
+            InputStream is = server.getInputStream();
+            byte[] buffer = new byte[8192];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 接收图像
+            while (true) {
+                int bytesRead = is.read(buffer);
+                if (bytesRead == -1) break;
+                baos.write(buffer, 0, bytesRead);
+                if (baos.size() > 5000) {
+                    byte[] imageBytes = baos.toByteArray();
+                    ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes);
+                    BufferedImage image = ImageIO.read(bais);
+                    if (image != null) {
+                        Image scaledImg = image.getScaledInstance(800, 450, Image.SCALE_SMOOTH);
+                        ImageIcon icon = new ImageIcon(scaledImg);
+                        label.setIcon(icon);
+                        frame.pack();
+                    }
+                    baos.reset();
+                }
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

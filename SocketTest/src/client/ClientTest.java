@@ -7,9 +7,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import java.awt.event.*;
-
 import cryptoUtils.*;
 import javaGUI.*;
 
@@ -20,6 +18,7 @@ public class ClientTest {
    private static int port;
    private static String in_username;
    private static String in_password;
+   private static ScreenCaptureSender screenCaptureSender;
    // private static boolean loginButtonClicked = false;
 
    public static void main(String[] args) {
@@ -36,24 +35,27 @@ public class ClientTest {
       LoginPanel loginPanel = new LoginPanel();
       // 创建一个面板
       JFrame loginFrame = createFrame("Login", 480, 360);
+      loginPanel.setSwitchButtonListener(new ActionListener() {
+         @Override
+            public void actionPerformed(ActionEvent e) {
+               try{
+                  runRegister(client, aesUtil);
+               } catch( Exception ex ){
+                  ex.printStackTrace();
+               }
+         }
+      });
       loginFrame.getContentPane().add(loginPanel);
 
       boolean isLoginPassed = false;
-      boolean registerButtonClicked = false;
       boolean loginButtonClicked = false;
       while( !isLoginPassed ){
          // 当用户还未点击登录按钮时，阻塞程序
          while ( !loginButtonClicked ) {
             loginButtonClicked = loginPanel.getLoginClicked();
             try {
-               if( registerButtonClicked ){
-                  // 告知server是login还是register
-                  runRegister(client, aesUtil);
-               }
                Thread.sleep(100); // Sleep to reduce CPU usage
             } catch (InterruptedException e) {
-               e.printStackTrace();
-            } catch (IOException e){
                e.printStackTrace();
             } catch (Exception e){
                e.printStackTrace();
@@ -91,20 +93,22 @@ public class ClientTest {
       mainClientPanel.setTerminateListener(new ActionListener() {
          @Override
          public void actionPerformed(ActionEvent e) {
-            mainClientFrame.dispose();
-            try{
-               client.close();
-            } catch ( IOException ex ){
-               ex.printStackTrace();
-            }
+             mainClientFrame.dispose();
+             try {
+                 client.close();
+             } catch (IOException ex) {
+                 ex.printStackTrace();
+             }
          }
       });
-
+      // 启动屏幕捕捉和传输线程
+      screenCaptureSender = new ScreenCaptureSender(client);
+      screenCaptureSender.start();
    }
 
    private static JFrame createFrame(String name, int frame_width, int frame_height){
       JFrame frame = new JFrame(name);
-      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       frame.pack();
       frame.setLocationRelativeTo(null);
       frame.setSize(frame_width, frame_height);
