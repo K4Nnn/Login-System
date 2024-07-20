@@ -82,7 +82,11 @@ class ClientHandler extends Thread {
             String encryptedData = receiveEncryptedDataFromClient();
             int nonce = processEncryptedData(encryptedData);
             sendNonceToClient(nonce);
-            processLoginMsgFromClient(); //处理登录请求（if
+            String preMsg = receivePreMessage();
+            if (preMsg.equals("1"))
+                processLoginMsgFromClient(); //处理登录请求（if
+            else if (preMsg.equals("2"))
+                processRegisterMsgFromClient();
             server.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,6 +145,12 @@ class ClientHandler extends Thread {
         String nonceStr = aesUtil.encryptAES(nonceBase64);
         out.writeUTF(nonceStr);
         System.out.println("Nonce successfully sent. ");
+    }
+
+    private String receivePreMessage() throws IOException, Exception{
+        DataInputStream in = new DataInputStream(server.getInputStream());
+        String preMsg = aesUtil.decryptAES(in.readUTF());
+        return preMsg;
     }
 
     private void processLoginMsgFromClient() throws IOException{
@@ -202,6 +212,10 @@ class ClientHandler extends Thread {
             System.out.println("Connection failed!"); // 连接失败
             e.printStackTrace(); // 处理连接异常
         }
+    }
+
+    private void processRegisterMsgFromClient(){
+
     }
 
     private String decryptDataByAES(String encData, cryptoAES aesUtil) throws Exception{

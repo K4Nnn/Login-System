@@ -8,6 +8,7 @@ public class LoginPanel extends JPanel {
     
     private String usernameText;
     private String passwordText;
+    private JButton switchButton;
     private JButton loginButton;
     private JTextField usernameField;
     private JPasswordField passwordField;
@@ -57,9 +58,17 @@ public class LoginPanel extends JPanel {
         // 创建button，并设置监听事件
         loginButton = new JButton("Login");
         loginButton.addActionListener(new LoginAction());
+        switchButton = new JButton("Switch to register");
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(loginButton);
+        buttonPanel.add(switchButton);
 
         // button放置于BorderLayou.SOUTH
-        add(loginButton, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    public void setSwitchButtonListener(ActionListener actionListener){
+        switchButton.addActionListener(actionListener);
     }
 
     public void setLoginClicked(boolean no){
@@ -81,9 +90,14 @@ public class LoginPanel extends JPanel {
     private class LoginAction implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
-            usernameText = usernameField.getText();
-            passwordText = new String(passwordField.getPassword());
-            isLoginClicked = true;
+            String pwdField = new String(passwordField.getPassword());
+            String usrField = usernameField.getText();
+            if( !usrField.equals("") && !pwdField.equals("") ){
+                usernameText = usrField;
+                passwordText = pwdField;
+                isLoginClicked = true;
+            }
         }
     }
+
 }
