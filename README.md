@@ -14,7 +14,7 @@ Tip:
  - 实现客户端登陆界面、服务器端存储数据于数据库。数据库采用MySQL；在server文件夹下的DatabaseConnector.java下，填写必要的数据库信息。
 
 **(3)程序流程**
-Server启动后，接收socket连接（多线程）。Client通过Login界面，输入已有的账号密码，登录至Server，再启动下一步的服务。
+ - Server启动后，接收socket连接（多线程）。Client通过Login界面，输入已有的账号密码，登录至Server，再启动下一步的服务。
     预改进：添加Client端的Register注册系统界面。
 
 **(4)如何编译运行**
